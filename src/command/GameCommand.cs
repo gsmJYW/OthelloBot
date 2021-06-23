@@ -1,8 +1,9 @@
 ﻿using Discord;
 using Discord.Commands;
+using Discord.Rest;
 using OthelloBot.src.embed;
-using System.Data;
 using System.Threading.Tasks;
+using System.Timers;
 
 namespace OthelloBot.src.command
 {
@@ -13,7 +14,7 @@ namespace OthelloBot.src.command
         {
             try
             {
-                
+                GameEventHandler.CreateGameRoom(Context.Channel.Id, Context.User);
             }
             catch
             {
@@ -24,8 +25,42 @@ namespace OthelloBot.src.command
             var embed = new GameRoomEmbed(Context.User);
             var message = await Context.Channel.SendMessageAsync(embed: embed.Build());
 
-            var emoji = new Emoji("✋");
-            await message.AddReactionAsync(emoji);
+            await message.AddReactionAsync(new Emoji("✋"));
+            await message.AddReactionAsync(new Emoji("❎"));
+
+            var timer = new GameRoomTimer()
+            {
+                Enabled = true,
+                AutoReset = true,
+                Interval = 1000 * 30,
+                Message = message,
+            };
+            
+            timer.Elapsed += OnTimedEvent;
+            timer.Start();
+        }
+
+        private class GameRoomTimer : Timer
+        {
+            public RestUserMessage Message;
+        }
+
+        private async void OnTimedEvent(object sender, ElapsedEventArgs e)
+        {
+            var GameRoom = (GameRoomTimer)sender;
+
+            try
+            {
+                await GameRoom.Message.DeleteAsync();
+                GameRoom.Stop();
+
+                GameEventHandler.RemoveGame(GameRoom.Message.Channel.Id);
+            }
+            catch
+            {
+
+            }
+            return;
         }
     }
 }
