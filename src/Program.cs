@@ -12,7 +12,7 @@ namespace OthelloBot
 {
     internal class Program : GameEventHandler
     {
-        private static DiscordShardedClient _client;
+        internal static DiscordShardedClient _client;
 
         private CommandService _commands;
         private IServiceProvider _services;
@@ -52,16 +52,26 @@ namespace OthelloBot
             });
             GameRoomTable.Columns.Add(new DataColumn()
             {
-                ColumnName = "host_id",
-                DataType = typeof(ulong),
-            });
-            GameRoomTable.Columns.Add(new DataColumn()
-            {
-                ColumnName = "guest_id",
-                DataType = typeof(ulong),
+                ColumnName = "host",
+                DataType = typeof(SocketUser),
             });
 
-            GameRoomTable.RowChanged += GameStart;
+            GameTable.Columns.Add(new DataColumn()
+            {
+                ColumnName = "channel_id",
+                DataType = typeof(ulong),
+                Unique = true,
+            });
+            GameTable.Columns.Add(new DataColumn()
+            {
+                ColumnName = "black",
+                DataType = typeof(SocketUser),
+            });
+            GameTable.Columns.Add(new DataColumn()
+            {
+                ColumnName = "white",
+                DataType = typeof(SocketUser),
+            });
 
             new Program()
                 .RunBotAsync()
