@@ -7,6 +7,7 @@ using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
 using OthelloBot.src.db;
+using Game = OthelloBot.src.Game;
 
 namespace OthelloBot
 {
@@ -52,6 +53,12 @@ namespace OthelloBot
             });
             GameRoomTable.Columns.Add(new DataColumn()
             {
+                ColumnName = "host_id",
+                DataType = typeof(ulong),
+                Unique = true,
+            });
+            GameRoomTable.Columns.Add(new DataColumn()
+            {
                 ColumnName = "host",
                 DataType = typeof(SocketUser),
             });
@@ -64,13 +71,20 @@ namespace OthelloBot
             });
             GameTable.Columns.Add(new DataColumn()
             {
-                ColumnName = "black",
-                DataType = typeof(SocketUser),
+                ColumnName = "red_id",
+                DataType = typeof(ulong),
+                Unique = true,
             });
             GameTable.Columns.Add(new DataColumn()
             {
-                ColumnName = "white",
-                DataType = typeof(SocketUser),
+                ColumnName = "blue_id",
+                DataType = typeof(ulong),
+                Unique = true,
+            });
+            GameTable.Columns.Add(new DataColumn()
+            {
+                ColumnName = "game",
+                DataType = typeof(Game),
             });
 
             new Program()
