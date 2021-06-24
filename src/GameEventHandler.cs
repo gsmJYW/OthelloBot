@@ -5,6 +5,7 @@ using System;
 using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
+using Game = OthelloBot.src.Game;
 
 namespace OthelloBot
 {
@@ -31,7 +32,7 @@ namespace OthelloBot
                 var GameRoom = GameRoomTable.Select($"channel_id={channel.Id}").FirstOrDefault();
                 var host = GameRoom["host"] as SocketUser;
 
-                if (reaction.Emote.Name == "✋")
+                if (reaction.Emote.Name == "✋" && reaction.UserId != host.Id)
                 {
                     try
                     {
@@ -42,19 +43,21 @@ namespace OthelloBot
 
                         if (new Random().Next(0, 2) == 0)
                         {
-                            game["black"] = host;
-                            game["white"] = guest;
+                            game["red_id"] = host.Id;
+                            game["blue_id"] = guest.Id;
+                            game["game"] = new Game(channel as SocketTextChannel, host, guest);
                         }
                         else
                         {
-                            game["black"] = guest;
-                            game["white"] = host;
+                            game["red_id"] = guest.Id;
+                            game["blue_id"] = host.Id;
+                            game["game"] = new Game(channel as SocketTextChannel, guest, host);
                         }
 
                         await message.DeleteAsync();
 
                         GameTable.Rows.Add(game);
-                        await GameStart(game);
+                        await GameStart(game["game"] as Game);
                     }
                     catch (Exception e)
                     {
@@ -66,10 +69,6 @@ namespace OthelloBot
                     await message.DeleteAsync();
                     RemoveGame(channel.Id);
                 }
-            }
-            else
-            {
-                return;
             }
 
             try
@@ -84,10 +83,17 @@ namespace OthelloBot
 
         public static void CreateGameRoom(ulong channelId, SocketUser host)
         {
+            var game = GameTable.Select($"red_id={host.Id} or blue_id={host.Id}");
+            if (game.Length > 0)
+            {
+                throw new Exception();
+            }
+
             try
             {
                 var GameRoom = GameRoomTable.NewRow();
                 GameRoom["channel_id"] = channelId;
+                GameRoom["host_id"] = host.Id;
                 GameRoom["host"] = host;
                 GameRoomTable.Rows.Add(GameRoom);
             }
@@ -97,25 +103,17 @@ namespace OthelloBot
             }
         }
 
-        protected async static Task GameStart(DataRow game)
+        protected async static Task GameStart(Game game)
         {
             try
             {
-                var channel = Program._client.GetChannel(Convert.ToUInt64(game["channel_id"])) as SocketTextChannel;
                 var embed = new GameEmbed(game);
-
-                var message = await channel.SendMessageAsync(embed: embed.Build());
-
-                await message.AddReactionAsync(new Emoji("🔼"));
-                await message.AddReactionAsync(new Emoji("🔽"));
-                await message.AddReactionAsync(new Emoji("◀️"));
-                await message.AddReactionAsync(new Emoji("▶️"));
-                await message.AddReactionAsync(new Emoji("✅"));
+                var message = await game.channel.SendMessageAsync(embed: embed.Build());
             }
-            catch (Exception e)
+            catch
             {
-                RemoveGame(Convert.ToUInt64(game["channel_id"]));
-                Console.WriteLine(e.Message);
+                RemoveGame(game.channel.Id);
+                return;
             }
         }
 

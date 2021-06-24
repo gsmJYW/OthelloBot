@@ -18,7 +18,7 @@ namespace OthelloBot.src.command
             }
             catch
             {
-                await Context.Channel.SendMessageAsync("한 채널에 한 게임만 할 수 있습니다.");
+                await Context.Channel.SendMessageAsync("이미 다른 게임에 참여 중이시거나\n이 채널에서 진행 중인 게임이 있습니다.");
                 return;
             }
 
