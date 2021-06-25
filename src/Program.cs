@@ -49,9 +49,8 @@ namespace OthelloBot
 
             GameRoomTable.Columns.Add(new DataColumn()
             {
-                ColumnName = "channel_id",
-                DataType = typeof(ulong),
-                Unique = true,
+                ColumnName = "channel",
+                DataType = typeof(SocketTextChannel),
             });
             GameRoomTable.Columns.Add(new DataColumn()
             {
@@ -191,10 +190,10 @@ namespace OthelloBot
                                 else if (!game.HasAvailablePlace(game.turn))
                                 {
                                     game.turn = Game.Piece.Empty;
-                                    RemoveGame(game.channel.Id);
+                                    await RemoveGame(game.hostId);
                                 }
 
-                                await game.GetMessage().ModifyAsync(msg =>
+                                await (await game.GetMessage()).ModifyAsync(msg =>
                                 {
                                     var embed = new GameEmbed(game);
                                     
@@ -218,8 +217,6 @@ namespace OthelloBot
                                 });
                             }
                         }
-
-                        await message.DeleteAsync();
                     }
                     catch (Exception e)
                     {
@@ -241,6 +238,19 @@ namespace OthelloBot
                     var err = result.ErrorReason;
                     Console.WriteLine(err);
                 }
+            }
+
+            try
+            {
+                var gameRows = GameTable.Select($"channel_id={message.Channel.Id}");
+                if (gameRows.Length > 0)
+                {
+                    await message.DeleteAsync();
+                }
+            }
+            catch
+            {
+
             }
         }
     }

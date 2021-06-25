@@ -1,7 +1,9 @@
 ﻿using Discord;
 using Discord.Commands;
 using Discord.Rest;
+using Discord.WebSocket;
 using OthelloBot.src.embed;
+using System;
 using System.Threading.Tasks;
 using System.Timers;
 
@@ -14,11 +16,11 @@ namespace OthelloBot.src.command
         {
             try
             {
-                GameEventHandler.CreateGameRoom(Context.Channel.Id, Context.User);
+                GameEventHandler.CreateGameRoom(Context.Channel as SocketTextChannel, Context.User);
             }
             catch
             {
-                await Context.Channel.SendMessageAsync("이미 다른 게임에 참여 중이시거나\n이 채널에서 진행 중인 게임이 있습니다.");
+                await Context.Channel.SendMessageAsync("이미 다른 게임에 참여 중이십니다.");
                 return;
             }
 
@@ -34,6 +36,7 @@ namespace OthelloBot.src.command
                 AutoReset = true,
                 Interval = 1000 * 30,
                 Message = message,
+                hostId = Context.User.Id,
             };
             
             timer.Elapsed += OnTimedEvent;
@@ -43,6 +46,7 @@ namespace OthelloBot.src.command
         private class GameRoomTimer : Timer
         {
             public RestUserMessage Message;
+            public ulong hostId;
         }
 
         private async void OnTimedEvent(object sender, ElapsedEventArgs e)
@@ -54,7 +58,7 @@ namespace OthelloBot.src.command
                 await GameRoom.Message.DeleteAsync();
                 GameRoom.Stop();
 
-                GameEventHandler.RemoveGame(GameRoom.Message.Channel.Id);
+                await GameEventHandler.RemoveGame(GameRoom.hostId);
             }
             catch
             {

@@ -2,6 +2,7 @@
 using Discord.WebSocket;
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace OthelloBot.src
 {
@@ -17,8 +18,10 @@ namespace OthelloBot.src
 		public int turn = Piece.Red;
 		public int[,] board = new int[8, 8];
 
+		public ulong hostId;
+
 		public SocketUser red, blue;
-		public SocketTextChannel channel;
+		public RestTextChannel channel;
 		private RestUserMessage message;
 
 		public void SetMessage(RestUserMessage message)
@@ -26,11 +29,11 @@ namespace OthelloBot.src
 			this.message = message;
 		}
 
-		public RestUserMessage GetMessage()
+		public async Task<RestUserMessage> GetMessage()
 		{
 			if (message.Embeds.Count == 0)
 			{
-				GameEventHandler.RemoveGame(message.Channel.Id);
+				await GameEventHandler.RemoveGame(message.Channel.Id);
 			}
 
 			return message;
