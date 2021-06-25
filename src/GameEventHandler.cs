@@ -38,26 +38,28 @@ namespace OthelloBot
                     {
                         var guest = reaction.User.Value as SocketUser;
 
-                        var game = GameTable.NewRow();
-                        game["channel_id"] = channel.Id;
+                        var gameRow = GameTable.NewRow();
+                        gameRow["channel_id"] = channel.Id;
 
                         if (new Random().Next(0, 2) == 0)
                         {
-                            game["red_id"] = host.Id;
-                            game["blue_id"] = guest.Id;
-                            game["game"] = new Game(channel as SocketTextChannel, host, guest);
+                            gameRow["red_id"] = host.Id;
+                            gameRow["blue_id"] = guest.Id;
+                            gameRow["game"] = new Game(host, guest);
                         }
                         else
                         {
-                            game["red_id"] = guest.Id;
-                            game["blue_id"] = host.Id;
-                            game["game"] = new Game(channel as SocketTextChannel, guest, host);
+                            gameRow["red_id"] = guest.Id;
+                            gameRow["blue_id"] = host.Id;
+                            gameRow["game"] = new Game(guest, host);
                         }
 
                         await message.DeleteAsync();
+                        GameTable.Rows.Add(gameRow);
 
-                        GameTable.Rows.Add(game);
-                        await GameStart(game["game"] as Game);
+                        var game = gameRow["game"] as Game;
+                        game.channel = channel as SocketTextChannel;
+                        await GameStart(game);
                     }
                     catch (Exception e)
                     {
@@ -109,6 +111,7 @@ namespace OthelloBot
             {
                 var embed = new GameEmbed(game);
                 var message = await game.channel.SendMessageAsync(embed: embed.Build());
+                game.SetMessage(message);
             }
             catch
             {
