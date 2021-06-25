@@ -1,5 +1,4 @@
 ﻿using Discord;
-using Discord.WebSocket;
 
 namespace OthelloBot.src.embed
 {
@@ -16,12 +15,12 @@ namespace OthelloBot.src.embed
             {
                 redName = $"__{redName}__";
             }
-            else
+            else if (game.turn == Game.Piece.Blue)
             {
                 blueName = $"__{blueName}__";
             }
 
-            WithTitle($":red_circle: {game.CountPiece(Game.Piece.Red)} {redName}\n:blue_circle: {game.CountPiece(Game.Piece.Blue)} {blueName}");
+            WithTitle($":red_circle: {redName} {game.CountPiece(Game.Piece.Red):00}\n:blue_circle: {blueName} {game.CountPiece(Game.Piece.Blue):00}");
 
             var boardString = ":black_large_square::one::two::three::four::five::six::seven::eight:";
 
