@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Data;
+using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Discord;
@@ -7,6 +8,7 @@ using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
 using OthelloBot.src.db;
+using OthelloBot.src.embed;
 using Game = OthelloBot.src.Game;
 
 namespace OthelloBot
@@ -154,6 +156,77 @@ namespace OthelloBot
 
             if (message.Author.IsBot || message == null || message.Channel is not SocketGuildChannel)
             {
+                return;
+            }
+
+            if (message.Content.Length == 2)
+            {
+                var gameRows = GameTable.Select($"channel_id={message.Channel.Id}");
+                
+                if (gameRows.Length == 0)
+                {
+                    return;
+                }
+
+                var gameRow = gameRows.FirstOrDefault();
+                var game = gameRow["game"] as Game;
+                
+                if (message.Author.Id == game.TurnUser().Id)
+                {
+                    try
+                    {
+                        var row = message.Content.ToLower()[0] - 'a';
+                        var col = Convert.ToByte(message.Content[1].ToString()) - 1;
+
+                        if (row >= 0 && row < 8 && col >= 0 && col < 8)
+                        {
+                            if (game.IsAvailable(game.turn, row, col))
+                            {
+                                game.PlacePiece(game.turn, row, col);
+                                
+                                if (game.HasAvailablePlace(Game.Opponent(game.turn)))
+                                {
+                                    game.turn = Game.Opponent(game.turn);
+                                }
+                                else if (!game.HasAvailablePlace(game.turn))
+                                {
+                                    game.turn = Game.Piece.Empty;
+                                    RemoveGame(game.channel.Id);
+                                }
+
+                                await game.GetMessage().ModifyAsync(msg =>
+                                {
+                                    var embed = new GameEmbed(game);
+                                    
+                                    if (game.turn == Game.Piece.Empty)
+                                    {
+                                        var redCount = game.CountPiece(Game.Piece.Red);
+                                        var blueCount = game.CountPiece(Game.Piece.Blue);
+
+                                        if (redCount == blueCount)
+                                        {
+                                            embed.Title = "무승부";
+                                        }
+                                        else
+                                        {
+                                            var winner = redCount > blueCount ? game.red.Username : game.blue.Username;
+                                            var countDifference = Math.Abs(redCount - blueCount);
+                                            embed.Title = $"{winner}님이\n{countDifference}점 차이로 승리";
+                                        }
+                                    }
+                                    msg.Embed = embed.Build();
+                                });
+                            }
+                        }
+
+                        await message.DeleteAsync();
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e.Message);
+                    }
+                }
+
                 return;
             }
 
