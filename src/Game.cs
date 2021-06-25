@@ -1,4 +1,5 @@
-﻿using Discord.WebSocket;
+﻿using Discord.Rest;
+using Discord.WebSocket;
 using System;
 using System.Linq;
 
@@ -15,12 +16,28 @@ namespace OthelloBot.src
 
 		public int turn = Piece.Red;
 		public int[,] board = new int[8, 8];
-		public SocketTextChannel channel;
-		public SocketUser red, blue;
 
-		public Game(SocketTextChannel channel, SocketUser red, SocketUser blue)
+		public SocketUser red, blue;
+		public SocketTextChannel channel;
+		private RestUserMessage message;
+
+		public void SetMessage(RestUserMessage message)
 		{
-			this.channel = channel;
+			this.message = message;
+		}
+
+		public RestUserMessage GetMessage()
+		{
+			if (message.Embeds.Count == 0)
+			{
+				GameEventHandler.RemoveGame(message.Channel.Id);
+			}
+
+			return message;
+		}
+
+		public Game(SocketUser red, SocketUser blue)
+		{
 			this.red = red;
 			this.blue = blue;
 
@@ -153,6 +170,18 @@ namespace OthelloBot.src
 				}
 			}
 		}
+
+		public SocketUser TurnUser()
+        {
+			if (turn == Piece.Blue)
+            {
+				return blue;
+            }
+			else
+            {
+				return red;
+            }
+        }
 
 		public int CountPiece(int piece)
 		{
