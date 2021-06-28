@@ -59,12 +59,12 @@ namespace OthelloBot
                         GameTable.Rows.Add(gameRow);
 
                         var game = gameRow["game"] as Game;
-                        
+
                         game.channel = await (channel as SocketTextChannel).Guild.CreateTextChannelAsync($"{host.Username}vs{guest.Username}");
                         gameRow["channel_id"] = game.channel.Id;
 
                         game.hostId = host.Id;
-                        
+
                         await GameStart(game);
                     }
                     catch (Exception e)
@@ -76,6 +76,37 @@ namespace OthelloBot
                 {
                     await message.DeleteAsync();
                     await RemoveGame(host.Id);
+                }
+            }
+            else if (embeds.Current.Title.Contains("circle"))
+            {
+                if (reaction.Emote.Name == "🙌")
+                {
+                    var gameRows = GameTable.Select($"channel_id={channel.Id}");
+
+                    if (gameRows.Length > 0)
+                    {
+                        var gameRow = gameRows.FirstOrDefault();
+                        var red_id = Convert.ToUInt64(gameRow["red_id"]);
+                        var blue_id = Convert.ToUInt64(gameRow["blue_id"]);
+
+                        if (reaction.UserId == red_id || reaction.UserId == blue_id)
+                        {
+                            var game = gameRow["game"] as Game;
+                            game.turn = Game.Piece.Empty;
+
+                            var embed = new GameEmbed(game);
+                            var winner = reaction.UserId == red_id ? game.blue : game.red;
+                            embed.Title = $"{winner.Username}님이 불계승";
+                            embed.Footer.Text = $"🔴 {game.red.Username} vs {game.blue.Username} 🔵";
+
+                            var gameRoomRow = GameRoomTable.Select($"host_id={game.hostId}").FirstOrDefault();
+                            var gameRoomChannel = gameRoomRow["channel"] as SocketTextChannel;
+
+                            await RemoveGame(game.hostId);
+                            await gameRoomChannel.SendMessageAsync(embed: embed.Build());
+                        }
+                    }
                 }
             }
 
@@ -99,11 +130,11 @@ namespace OthelloBot
 
             try
             {
-                var GameRoom = GameRoomTable.NewRow();
-                GameRoom["channel"] = channel;
-                GameRoom["host_id"] = host.Id;
-                GameRoom["host"] = host;
-                GameRoomTable.Rows.Add(GameRoom);
+                var gameRoom = GameRoomTable.NewRow();
+                gameRoom["channel"] = channel;
+                gameRoom["host_id"] = host.Id;
+                gameRoom["host"] = host;
+                GameRoomTable.Rows.Add(gameRoom);
             }
             catch
             {
@@ -117,6 +148,7 @@ namespace OthelloBot
             {
                 var embed = new GameEmbed(game);
                 var message = await game.channel.SendMessageAsync(embed: embed.Build());
+                await message.AddReactionAsync(new Emoji("🙌"));
             }
             catch
             {
@@ -129,24 +161,18 @@ namespace OthelloBot
         {
             try
             {
-                var GameRoom = GameRoomTable.Select($"host_id={host_id}").FirstOrDefault();
-                GameRoomTable.Rows.Remove(GameRoom);
+                var gameRoomRow = GameRoomTable.Select($"host_id={host_id}").FirstOrDefault();
+                GameRoomTable.Rows.Remove(gameRoomRow);
+
+                var gameRow = GameTable.Select($"red_id={host_id} or blue_id={host_id}").FirstOrDefault();
+                var game = gameRow["game"] as Game;
+                GameTable.Rows.Remove(gameRow);
+
+                await game.channel.DeleteAsync();
             }
-            catch
+            catch (Exception e)
             {
-
-            }
-
-            try
-            {
-                var Game = GameTable.Select($"red_id={host_id} or blue_id={host_id}").FirstOrDefault();
-                GameTable.Rows.Remove(Game);
-
-                await (Game["game"] as Game).channel.DeleteAsync();
-            }
-            catch
-            {
-
+                Console.WriteLine(e.Message);
             }
         }
     }
