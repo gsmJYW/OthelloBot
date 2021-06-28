@@ -1,8 +1,11 @@
 ﻿using Discord.Rest;
 using Discord.WebSocket;
+using OthelloBot.src.embed;
 using System;
+using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Timers;
 
 namespace OthelloBot.src
 {
@@ -15,6 +18,7 @@ namespace OthelloBot.src
 			public const int Blue = 2;
 		}
 
+		public int red_seconds = 300, blue_seconds = 300;
 		public int turn = Piece.Red;
 		public int[,] board = new int[8, 8];
 
@@ -22,7 +26,10 @@ namespace OthelloBot.src
 
 		public SocketUser red, blue;
 		public RestTextChannel channel;
+		public SocketTextChannel roomChannel;
 		private RestUserMessage message;
+
+		public Timer timer = new Timer();
 
 		public void SetMessage(RestUserMessage message)
 		{
@@ -45,6 +52,61 @@ namespace OthelloBot.src
 			this.blue = blue;
 
 			InitBoard();
+
+			timer.Elapsed += OnTimedEvent;
+			timer.Interval = 1000;
+			timer.Start();
+		}
+
+		private async void OnTimedEvent(object sender, ElapsedEventArgs e)
+        {
+			if (turn == Piece.Red)
+            {
+				red_seconds--;
+
+				if (red_seconds % 5 == 0)
+				{
+					await message.ModifyAsync(msg =>
+					{
+						var embed = new GameEmbed(this);
+						msg.Embed = embed.Build();
+					});
+				}
+			}
+			else
+			{
+				blue_seconds--;
+
+				if (blue_seconds % 5 == 0)
+				{
+					await message.ModifyAsync(msg =>
+					{
+						var embed = new GameEmbed(this);
+						msg.Embed = embed.Build();
+					});
+				}
+			}
+
+			if (red_seconds == 0 || blue_seconds == 0)
+            {
+				await GameEventHandler.RemoveGame(hostId);
+				
+				turn = Piece.Empty;
+
+				var embed = new GameEmbed(this);
+				var winner = red_seconds > blue_seconds ? red : blue;
+				embed.Title = $"{winner.Username}님이 시간승";
+				embed.Footer.Text = "";
+
+				try
+				{
+					await roomChannel.SendMessageAsync(embed: embed.Build());
+				}
+				catch (Exception ex)
+                {
+					Console.WriteLine(ex.Message);
+                }
+			}
 		}
 
 		public void InitBoard()
