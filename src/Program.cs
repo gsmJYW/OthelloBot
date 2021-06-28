@@ -190,31 +190,41 @@ namespace OthelloBot
                                 else if (!game.HasAvailablePlace(game.turn))
                                 {
                                     game.turn = Game.Piece.Empty;
-                                    await RemoveGame(game.hostId);
                                 }
 
-                                await (await game.GetMessage()).ModifyAsync(msg =>
-                                {
-                                    var embed = new GameEmbed(game);
-                                    
-                                    if (game.turn == Game.Piece.Empty)
-                                    {
-                                        var redCount = game.CountPiece(Game.Piece.Red);
-                                        var blueCount = game.CountPiece(Game.Piece.Blue);
+                                var embed = new GameEmbed(game);
 
-                                        if (redCount == blueCount)
-                                        {
-                                            embed.Title = "무승부";
-                                        }
-                                        else
-                                        {
-                                            var winner = redCount > blueCount ? game.red.Username : game.blue.Username;
-                                            var countDifference = Math.Abs(redCount - blueCount);
-                                            embed.Title = $"{winner}님이\n{countDifference}점 차이로 승리";
-                                        }
+                                if (game.turn == Game.Piece.Empty)
+                                {
+                                    var redCount = game.CountPiece(Game.Piece.Red);
+                                    var blueCount = game.CountPiece(Game.Piece.Blue);
+
+                                    if (redCount == blueCount)
+                                    {
+                                        embed.Title = "무승부";
                                     }
-                                    msg.Embed = embed.Build();
-                                });
+                                    else
+                                    {
+                                        var winner = redCount > blueCount ? game.red : game.blue;
+                                        var countDifference = Math.Abs(redCount - blueCount);
+                                        embed.Title = $"{winner.Username}님이\n{countDifference}점 차이로 승리";
+                                    }
+
+                                    embed.Footer.Text = $"🔴 {game.red.Username} vs {game.blue.Username} 🔵";
+                                    
+                                    var gameRoomRow = GameRoomTable.Select($"host_id={game.hostId}").FirstOrDefault();
+                                    var gameRoomChannel = gameRoomRow["channel"] as SocketTextChannel;
+
+                                    await RemoveGame(game.hostId);
+                                    await gameRoomChannel.SendMessageAsync(embed: embed.Build());
+                                }
+                                else
+                                {
+                                    await (await game.GetMessage()).ModifyAsync(msg =>
+                                    {
+                                        msg.Embed = embed.Build();
+                                    });
+                                }
                             }
                         }
                     }
