@@ -3,6 +3,7 @@ using System.Data;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using System.Timers;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
@@ -123,10 +124,7 @@ namespace OthelloBot
                 if (!permission.Administrator)
                 {
                     await guild.DefaultChannel.SendMessageAsync("https://discord.com/api/oauth2/authorize?client_id=855050551669293076&permissions=8&scope=bot");
-                    await guild.DefaultChannel.SendMessageAsync(
-                        @$"{_client.CurrentUser.Mention}는(은) **관리자 권한**이 필요합니다.
-                        권한이 부족해 서버에서 내보냅니다, 다시 초대해주세요."
-                    );
+                    await guild.DefaultChannel.SendMessageAsync($"{_client.CurrentUser.Mention}는(은) **관리자 권한**이 필요합니다.\n권한이 부족해 서버에서 내보냅니다, 다시 초대해주세요.");
                     await guild.LeaveAsync();
                 }
             }
@@ -169,7 +167,9 @@ namespace OthelloBot
 
                 var gameRow = gameRows.FirstOrDefault();
                 var game = gameRow["game"] as Game;
-                
+
+                await message.DeleteAsync();
+
                 if (message.Author.Id == game.TurnUser().Id)
                 {
                     try
@@ -210,13 +210,17 @@ namespace OthelloBot
                                         embed.Title = $"{winner.Username}님이\n{countDifference}점 차이로 승리";
                                     }
 
-                                    embed.Footer.Text = $"🔴 {game.red.Username} vs {game.blue.Username} 🔵";
-                                    
-                                    var gameRoomRow = GameRoomTable.Select($"host_id={game.hostId}").FirstOrDefault();
-                                    var gameRoomChannel = gameRoomRow["channel"] as SocketTextChannel;
-
+                                    embed.Footer.Text = "";
                                     await RemoveGame(game.hostId);
-                                    await gameRoomChannel.SendMessageAsync(embed: embed.Build());
+
+                                    try
+                                    {
+                                        await game.roomChannel.SendMessageAsync(embed: embed.Build());
+                                    }
+                                    catch (Exception e)
+                                    {
+                                        Console.WriteLine(e.Message);
+                                    }
                                 }
                                 else
                                 {

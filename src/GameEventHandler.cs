@@ -11,9 +11,7 @@ namespace OthelloBot
 {
     internal class GameEventHandler
     {
-        protected static DataTable
-            GameRoomTable = new DataTable(),
-            GameTable = new DataTable();
+        protected static DataTable GameRoomTable = new DataTable(), GameTable = new DataTable();
 
         protected async Task _client_ReactionAdded(Cacheable<IUserMessage, ulong> entity, ISocketMessageChannel channel, SocketReaction reaction)
         {
@@ -27,12 +25,12 @@ namespace OthelloBot
             var embeds = message.Embeds.GetEnumerator();
             embeds.MoveNext();
 
-            if (embeds.Current.Title.Contains("게임"))
+            if (embeds.Current.Title != null && embeds.Current.Title.Contains("게임"))
             {
                 var hostId = embeds.Current.Footer.Value.Text[3..];
 
-                var GameRoom = GameRoomTable.Select($"host_id={hostId}").FirstOrDefault();
-                var host = GameRoom["host"] as SocketUser;
+                var gameRoom = GameRoomTable.Select($"host_id={hostId}").FirstOrDefault();
+                var host = gameRoom["host"] as SocketUser;
 
                 if (reaction.Emote.Name == "✋" && reaction.UserId != host.Id)
                 {
@@ -64,6 +62,7 @@ namespace OthelloBot
                         gameRow["channel_id"] = game.channel.Id;
 
                         game.hostId = host.Id;
+                        game.roomChannel = gameRoom["channel"] as SocketTextChannel;
 
                         await GameStart(game);
                     }
@@ -78,7 +77,7 @@ namespace OthelloBot
                     await RemoveGame(host.Id);
                 }
             }
-            else if (embeds.Current.Title.Contains("circle"))
+            else if (embeds.Current.Footer.HasValue && embeds.Current.Footer.Value.Text.Contains("기권"))
             {
                 if (reaction.Emote.Name == "🙌")
                 {
@@ -98,13 +97,18 @@ namespace OthelloBot
                             var embed = new GameEmbed(game);
                             var winner = reaction.UserId == red_id ? game.blue : game.red;
                             embed.Title = $"{winner.Username}님이 불계승";
-                            embed.Footer.Text = $"🔴 {game.red.Username} vs {game.blue.Username} 🔵";
-
-                            var gameRoomRow = GameRoomTable.Select($"host_id={game.hostId}").FirstOrDefault();
-                            var gameRoomChannel = gameRoomRow["channel"] as SocketTextChannel;
-
+                            embed.Footer.Text = "";
+                            
                             await RemoveGame(game.hostId);
-                            await gameRoomChannel.SendMessageAsync(embed: embed.Build());
+
+                            try
+                            {
+                                await game.roomChannel.SendMessageAsync(embed: embed.Build());
+                            }
+                            catch (Exception e)
+                            {
+                                Console.WriteLine(e.Message);
+                            }
                         }
                     }
                 }
@@ -149,6 +153,7 @@ namespace OthelloBot
                 var embed = new GameEmbed(game);
                 var message = await game.channel.SendMessageAsync(embed: embed.Build());
                 await message.AddReactionAsync(new Emoji("🙌"));
+                game.SetMessage(message);
             }
             catch
             {
@@ -165,7 +170,10 @@ namespace OthelloBot
                 GameRoomTable.Rows.Remove(gameRoomRow);
 
                 var gameRow = GameTable.Select($"red_id={host_id} or blue_id={host_id}").FirstOrDefault();
+                
                 var game = gameRow["game"] as Game;
+                game.timer.Dispose();
+                
                 GameTable.Rows.Remove(gameRow);
 
                 await game.channel.DeleteAsync();
