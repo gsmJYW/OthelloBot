@@ -48,6 +48,7 @@ namespace OthelloBot.src.embed
             }
 
             WithDescription(boardString);
+            WithFooter("🙌 이모지를 누르면 기권합니다.");
         }
     }
 }
