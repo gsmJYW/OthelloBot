@@ -50,7 +50,7 @@ namespace OthelloBot.src.embed
             AddField($"{redName}", $"🔴 {game.CountPiece(Game.Piece.Red):00}\n{game.red_seconds}초", true);
             AddField($"{blueName}", $"🔵 {game.CountPiece(Game.Piece.Blue):00}\n{game.blue_seconds}초", true);
 
-            WithFooter("🙌 이모지를 누르면 기권합니다.");
+            WithFooter("🙌를 누르면 기권합니다.");
         }
     }
 }
