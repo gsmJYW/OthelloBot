@@ -8,20 +8,6 @@ namespace OthelloBot.src.embed
         {
             WithColor(new Color(0xFFFFFF));
 
-            string redName = game.red.Username;
-            string blueName = game.blue.Username;
-
-            if (game.turn == Game.Piece.Red)
-            {
-                redName = $"__{redName}__";
-            }
-            else if (game.turn == Game.Piece.Blue)
-            {
-                blueName = $"__{blueName}__";
-            }
-
-            WithTitle($":red_circle: {redName} {game.CountPiece(Game.Piece.Red):00}\n:blue_circle: {blueName} {game.CountPiece(Game.Piece.Blue):00}");
-
             var boardString = ":black_large_square::one::two::three::four::five::six::seven::eight:";
 
             for (int y = 0; y < 8; y++)
@@ -48,6 +34,22 @@ namespace OthelloBot.src.embed
             }
 
             WithDescription(boardString);
+
+            string redName = game.red.Username;
+            string blueName = game.blue.Username;
+
+            if (game.turn == Game.Piece.Red)
+            {
+                redName = $"__{redName}__";
+            }
+            else if (game.turn == Game.Piece.Blue)
+            {
+                blueName = $"__{blueName}__";
+            }
+
+            AddField($"{redName}", $"🔴 {game.CountPiece(Game.Piece.Red):00}\n{game.red_seconds}초", true);
+            AddField($"{blueName}", $"🔵 {game.CountPiece(Game.Piece.Blue):00}\n{game.blue_seconds}초", true);
+
             WithFooter("🙌 이모지를 누르면 기권합니다.");
         }
     }
