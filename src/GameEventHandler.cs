@@ -58,7 +58,11 @@ namespace OthelloBot
 
                         var game = gameRow["game"] as Game;
 
-                        game.channel = await (channel as SocketTextChannel).Guild.CreateTextChannelAsync($"{host.Username}vs{guest.Username}");
+                        game.channel = await (channel as SocketTextChannel).Guild.CreateTextChannelAsync($"{host.Username}vs{guest.Username}", properties =>
+                        {
+                            properties.SlowModeInterval = 3;
+                        });
+
                         gameRow["channel_id"] = game.channel.Id;
 
                         game.hostId = host.Id;
