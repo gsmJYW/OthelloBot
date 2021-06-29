@@ -63,6 +63,15 @@ namespace OthelloBot
                             properties.SlowModeInterval = 3;
                         });
 
+                        var guild = Program._client.GetGuild(game.channel.GuildId);
+
+                        game.role = await guild.CreateRoleAsync($"{host.Username}vs{guest.Username}", isMentionable: false);
+                        await (game.red as IGuildUser).AddRoleAsync(game.role.Id);
+                        await (game.blue as IGuildUser).AddRoleAsync(game.role.Id);
+
+                        await game.channel.AddPermissionOverwriteAsync(game.role, permissions: new OverwritePermissions(sendMessages: PermValue.Allow));
+                        await game.channel.AddPermissionOverwriteAsync(guild.EveryoneRole, permissions: new OverwritePermissions(sendMessages: PermValue.Deny));
+
                         gameRow["channel_id"] = game.channel.Id;
 
                         game.hostId = host.Id;
@@ -195,6 +204,7 @@ namespace OthelloBot
                 
                 GameTable.Rows.Remove(gameRow);
 
+                await game.role.DeleteAsync();
                 await game.channel.DeleteAsync();
             }
             catch (Exception e)

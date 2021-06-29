@@ -28,6 +28,7 @@ namespace OthelloBot.src
 		public ulong hostId;
 
 		public SocketUser red, blue;
+		public RestRole role;
 		public RestTextChannel channel;
 		public SocketTextChannel roomChannel;
 		private RestUserMessage message;
@@ -65,32 +66,39 @@ namespace OthelloBot.src
 
 		private async void OnTimedEvent(object sender, ElapsedEventArgs e)
         {
-			if (turn == Piece.Red)
-            {
-				red_seconds--;
-
-				if (red_seconds % 5 == 0)
-				{
-					await message.ModifyAsync(msg =>
-					{
-						var embed = new GameEmbed(this);
-						msg.Embed = embed.Build();
-					});
-				}
-			}
-			else
+			try
 			{
-				blue_seconds--;
-
-				if (blue_seconds % 5 == 0)
+				if (turn == Piece.Red)
 				{
-					await message.ModifyAsync(msg =>
+					red_seconds--;
+
+					if (red_seconds % 5 == 0)
 					{
-						var embed = new GameEmbed(this);
-						msg.Embed = embed.Build();
-					});
+						await message.ModifyAsync(msg =>
+						{
+							var embed = new GameEmbed(this);
+							msg.Embed = embed.Build();
+						});
+					}
+				}
+				else
+				{
+					blue_seconds--;
+
+					if (blue_seconds % 5 == 0)
+					{
+						await message.ModifyAsync(msg =>
+						{
+							var embed = new GameEmbed(this);
+							msg.Embed = embed.Build();
+						});
+					}
 				}
 			}
+			catch (Exception ex)
+            {
+				Console.WriteLine(ex.Message);
+            }
 
 			if (red_seconds == 0 || blue_seconds == 0)
             {
@@ -116,7 +124,6 @@ namespace OthelloBot.src
 				embed.Footer.Text = "";
 
 				UpdateStat(redWin, blueWin, (int)(DateTime.Now - startTime).TotalSeconds);
-
 				await GameEventHandler.RemoveGame(hostId);
 
 				try
