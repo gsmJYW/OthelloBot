@@ -66,6 +66,15 @@ namespace OthelloBot.src
 
 		private async void OnTimedEvent(object sender, ElapsedEventArgs e)
         {
+			if (turn == Piece.Red)
+			{
+				red_seconds--;
+			}
+			else if (turn == Piece.Blue)
+			{
+				blue_seconds--;
+			}
+
 			if (red_seconds <= 0 || blue_seconds <= 0)
             {
 				turn = Piece.Empty;
