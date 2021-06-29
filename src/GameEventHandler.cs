@@ -95,10 +95,25 @@ namespace OthelloBot
                             game.turn = Game.Piece.Empty;
 
                             var embed = new GameEmbed(game);
-                            var winner = reaction.UserId == red_id ? game.blue : game.red;
+                            
+                            SocketUser winner;
+                            int redWin = 0, blueWin = 0;
+
+                            if (reaction.UserId == blue_id)
+                            {
+                                winner = game.red;
+                                redWin = 1;
+                            }
+                            else
+                            {
+                                winner = game.blue;
+                                blueWin = 1;
+                            }
+
                             embed.Title = $"{winner.Username}님이 불계승";
                             embed.Footer.Text = "";
-                            
+
+                            game.UpdateStat(redWin, blueWin, (int)(DateTime.Now - game.startTime).TotalSeconds);
                             await RemoveGame(game.hostId);
 
                             try

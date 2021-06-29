@@ -213,6 +213,8 @@ namespace OthelloBot
                                     embed.Footer.Text = "";
                                     await RemoveGame(game.hostId);
 
+                                    game.UpdateStat(redCount, blueCount, (int)(DateTime.Now - game.startTime).TotalSeconds);
+
                                     try
                                     {
                                         await game.roomChannel.SendMessageAsync(embed: embed.Build());
