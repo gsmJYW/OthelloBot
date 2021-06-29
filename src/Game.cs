@@ -66,41 +66,7 @@ namespace OthelloBot.src
 
 		private async void OnTimedEvent(object sender, ElapsedEventArgs e)
         {
-			try
-			{
-				if (turn == Piece.Red)
-				{
-					red_seconds--;
-
-					if (red_seconds % 5 == 0)
-					{
-						await message.ModifyAsync(msg =>
-						{
-							var embed = new GameEmbed(this);
-							msg.Embed = embed.Build();
-						});
-					}
-				}
-				else
-				{
-					blue_seconds--;
-
-					if (blue_seconds % 5 == 0)
-					{
-						await message.ModifyAsync(msg =>
-						{
-							var embed = new GameEmbed(this);
-							msg.Embed = embed.Build();
-						});
-					}
-				}
-			}
-			catch (Exception ex)
-            {
-				Console.WriteLine(ex.Message);
-            }
-
-			if (red_seconds == 0 || blue_seconds == 0)
+			if (red_seconds <= 0 || blue_seconds <= 0)
             {
 				turn = Piece.Empty;
 
