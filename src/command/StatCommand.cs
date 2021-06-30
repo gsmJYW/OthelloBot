@@ -13,7 +13,7 @@ namespace OthelloBot.src.command
         {
             var user = Context.User;
 
-            if (args[0] != null)
+            if (args.Length > 0)
             {
                 try
                 {
