@@ -9,14 +9,24 @@ namespace OthelloBot.src.embed
     {
         public StatEmbed(SocketUser user)
         {
+            var avatarUrl = $"https://cdn.discordapp.com/embed/avatars/{user.DiscriminatorValue % 5}.png";
+
+            if (user.GetAvatarUrl() != null)
+            {
+                avatarUrl = user.GetAvatarUrl();
+            }
+
+            WithAuthor(user.Username, iconUrl: avatarUrl);
             WithColor(new Color(0xFFFFFF));
-            WithThumbnailUrl(user.GetAvatarUrl());
 
             var win = 0;
             var draw = 0;
             var lose = 0;
-            var playtime_second = 0;
+            var playtimeSecond = 0;
             var winRate = 0.0;
+
+            var winRank = "?";
+            var playtimeSecondRank = "?";
 
             try
             {
@@ -25,21 +35,24 @@ namespace OthelloBot.src.embed
                 win = Convert.ToInt32(userRow["win"]);
                 draw = Convert.ToInt32(userRow["draw"]);
                 lose = Convert.ToInt32(userRow["lose"]);
-                playtime_second = Convert.ToInt32(userRow["playtime_second"]);
+                playtimeSecond = Convert.ToInt32(userRow["playtime_second"]);
 
                 winRate = (double)win / (win + draw + lose);
+
+                winRank = $"{userRow["win_rank"]}";
+                playtimeSecondRank = $"{userRow["playtime_second_rank"]}";
             }
-            catch
+            catch (Exception e)
             {
-
+                Console.WriteLine(e.Message);
             }
 
-            AddField("승", win, true);
+            AddField("승", $"{win} (#{winRank})", true);
             AddField("무", draw, true);
             AddField("패", lose, true);
 
-            AddField("승률", $"{winRate * 100: 0.00}%", true);
-            AddField("플레이 시간", $"{playtime_second / 60}분", true);
+            AddField("승률", $"{winRate * 100: 0}%", true);
+            AddField("플레이 시간", $"{playtimeSecond / 60}분 (#{playtimeSecondRank})", true);
         }
     }
 }
