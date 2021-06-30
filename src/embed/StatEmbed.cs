@@ -19,14 +19,9 @@ namespace OthelloBot.src.embed
             WithAuthor(user.Username, iconUrl: avatarUrl);
             WithColor(new Color(0xFFFFFF));
 
-            var win = 0;
-            var draw = 0;
-            var lose = 0;
-            var playtimeSecond = 0;
-            var winRate = 0.0;
-
-            var winRank = "?";
-            var playtimeSecondRank = "?";
+            int win, draw, lose, playtimeSecond;
+            double winRate;
+            string winRank, playtimeSecondRank;
 
             try
             {
@@ -42,9 +37,10 @@ namespace OthelloBot.src.embed
                 winRank = $"{userRow["win_rank"]}";
                 playtimeSecondRank = $"{userRow["playtime_second_rank"]}";
             }
-            catch (Exception e)
+            catch
             {
-                Console.WriteLine(e.Message);
+                WithDescription("플레이 기록이 없습니다.");
+                return;
             }
 
             AddField("승", $"{win} (#{winRank})", true);
