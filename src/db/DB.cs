@@ -19,11 +19,11 @@ namespace OthelloBot.src.db
             using var conn = new MySqlConnection(connStr);
             conn.Open();
 
-            string query = $"SELECT *, RANK() OVER (ORDER BY win DESC) win_rank, RANK() OVER (ORDER BY playtime_second DESC) playtime_second_rank FROM othello.user WHERE id = {user_id}";
+            string query = $"SELECT * FROM (SELECT *, RANK() OVER (ORDER BY win DESC) win_rank, RANK() OVER (ORDER BY playtime_second DESC) playtime_second_rank FROM user) as user_with_rank WHERE id = {user_id}";
             MySqlDataAdapter adpt = new MySqlDataAdapter(query, conn);
 
             DataSet ds = new DataSet();
-            adpt.Fill(ds, "user");
+            adpt.Fill(ds, "user_with_rank");
 
             try
             {
