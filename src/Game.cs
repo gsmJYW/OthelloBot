@@ -61,7 +61,6 @@ namespace OthelloBot.src
 
 			timer.Elapsed += OnTimedEvent;
 			timer.Interval = 1000;
-			timer.Start();
 		}
 
 		private async void OnTimedEvent(object sender, ElapsedEventArgs e)
