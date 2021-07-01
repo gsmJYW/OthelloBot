@@ -1,4 +1,5 @@
 ﻿using Discord;
+using Discord.Rest;
 using Discord.WebSocket;
 using OthelloBot.src.embed;
 using System;
@@ -52,20 +53,21 @@ namespace OthelloBot
                             gameRow["blue_id"] = host.Id;
                             gameRow["game"] = new Game(guest, host);
                         }
-
-                        await message.DeleteAsync();
                         GameTable.Rows.Add(gameRow);
 
                         var game = gameRow["game"] as Game;
+                        var gameName = $"{host.Username} vs {guest.Username}";
 
-                        game.channel = await (channel as SocketTextChannel).Guild.CreateTextChannelAsync($"{host.Username}vs{guest.Username}", properties =>
+                        game.channel = await (channel as SocketTextChannel).Guild.CreateTextChannelAsync(gameName, properties =>
                         {
                             properties.SlowModeInterval = 3;
                         });
 
-                        var guild = Program._client.GetGuild(game.channel.GuildId);
+                        await message.DeleteAsync();
 
-                        game.role = await guild.CreateRoleAsync($"{host.Username}vs{guest.Username}", isMentionable: false);
+                        var guild = Program._client.GetGuild(game.channel.GuildId);
+                        game.role = await guild.CreateRoleAsync(gameName, isMentionable: false);
+
                         await (game.red as IGuildUser).AddRoleAsync(game.role.Id);
                         await (game.blue as IGuildUser).AddRoleAsync(game.role.Id);
 
@@ -178,13 +180,20 @@ namespace OthelloBot
         {
             try
             {
+                await game.roomChannel.SendMessageAsync($"{game.channel.Mention} 게임이 시작됩니다.");
+
                 var embed = new GameEmbed(game);
                 var message = await game.channel.SendMessageAsync(embed: embed.Build());
                 await message.AddReactionAsync(new Emoji("🙌"));
+                
                 game.SetMessage(message);
+                game.timer.Start();
             }
-            catch
+            catch (Exception e)
             {
+                Console.WriteLine(e.Message);
+                Console.WriteLine(e.StackTrace);
+
                 await RemoveGame(game.hostId);
                 return;
             }
