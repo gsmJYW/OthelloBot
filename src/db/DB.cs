@@ -1,5 +1,4 @@
-﻿using Discord.WebSocket;
-using MySql.Data.MySqlClient;
+﻿using MySql.Data.MySqlClient;
 using System;
 using System.Data;
 
@@ -28,6 +27,27 @@ namespace OthelloBot.src.db
             try
             {
                 return ds.Tables[0].Rows[0];
+            }
+            catch
+            {
+                throw;
+            }
+        }
+
+        public static DataTable Leaderboard(string order_column)
+        {
+            using var conn = new MySqlConnection(connStr);
+            conn.Open();
+
+            string query = $"SELECT * FROM user ORDER BY {order_column} DESC LIMIT 10";
+            MySqlDataAdapter adpt = new MySqlDataAdapter(query, conn);
+
+            DataSet ds = new DataSet();
+            adpt.Fill(ds, "user");
+
+            try
+            {
+                return ds.Tables[0];
             }
             catch
             {
