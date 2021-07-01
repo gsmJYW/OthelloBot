@@ -3,7 +3,6 @@ using Discord.Commands;
 using Discord.Rest;
 using Discord.WebSocket;
 using OthelloBot.src.embed;
-using System;
 using System.Threading.Tasks;
 using System.Timers;
 
@@ -34,7 +33,7 @@ namespace OthelloBot.src.command
             {
                 Enabled = true,
                 AutoReset = true,
-                Interval = 1000 * 30,
+                Interval = 1000 * 60,
                 Message = message,
                 hostId = Context.User.Id,
             };
