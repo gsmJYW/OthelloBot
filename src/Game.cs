@@ -290,8 +290,8 @@ namespace OthelloBot.src
 				draw = 1;
             }
 
-			DB.UpdateUser(red.Id, redWin, draw, redLose, playtime_second);
-			DB.UpdateUser(blue.Id, blueWin, draw, blueLose, playtime_second);
+			DB.UpdateUser(red.Id, $"{red.Username}#{red.Discriminator}", redWin, draw, redLose, playtime_second);
+			DB.UpdateUser(blue.Id, $"{blue.Username}#{blue.Discriminator}", blueWin, draw, blueLose, playtime_second);
         }
 	}
 }
