@@ -182,14 +182,26 @@ namespace OthelloBot
                             if (game.IsAvailable(game.turn, row, col))
                             {
                                 game.PlacePiece(game.turn, row, col);
-                                
+
                                 if (game.HasAvailablePlace(Game.Opponent(game.turn)))
                                 {
                                     game.turn = Game.Opponent(game.turn);
+
+                                    await (await game.GetMessage()).ModifyAsync(msg =>
+                                    {
+                                        msg.Content = "";
+                                    });
                                 }
                                 else if (!game.HasAvailablePlace(game.turn))
                                 {
                                     game.turn = Game.Piece.Empty;
+                                }
+                                else
+                                {
+                                    await (await game.GetMessage()).ModifyAsync(msg =>
+                                    {
+                                        msg.Content = $"패스, {game.TurnUser().Mention}님 차례입니다.";
+                                    });
                                 }
 
                                 var embed = new GameEmbed(game);
