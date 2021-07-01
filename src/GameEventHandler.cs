@@ -38,7 +38,6 @@ namespace OthelloBot
                     try
                     {
                         var guest = reaction.User.Value as SocketUser;
-
                         var gameRow = GameTable.NewRow();
 
                         if (new Random().Next(0, 2) == 0)
@@ -64,6 +63,7 @@ namespace OthelloBot
                         });
 
                         await message.DeleteAsync();
+                        await channel.SendMessageAsync($"{game.channel.Mention} 게임이 시작됩니다.");
 
                         var guild = Program._client.GetGuild(game.channel.GuildId);
                         game.role = await guild.CreateRoleAsync(gameName, isMentionable: false);
@@ -77,7 +77,7 @@ namespace OthelloBot
                         gameRow["channel_id"] = game.channel.Id;
 
                         game.hostId = host.Id;
-                        game.roomChannel = gameRoom["channel"] as SocketTextChannel;
+                        game.roomChannel = channel as SocketTextChannel;
 
                         await GameStart(game);
                     }
@@ -180,8 +180,6 @@ namespace OthelloBot
         {
             try
             {
-                await game.roomChannel.SendMessageAsync($"{game.channel.Mention} 게임이 시작됩니다.");
-
                 var embed = new GameEmbed(game);
                 var message = await game.channel.SendMessageAsync(embed: embed.Build());
                 await message.AddReactionAsync(new Emoji("🙌"));
