@@ -34,7 +34,28 @@ namespace OthelloBot.src.db
             }
         }
 
-        public static DataTable Leaderboard(string order_column)
+        public static DataRowCollection GetUsers(string username)
+        {
+            using var conn = new MySqlConnection(connStr);
+            conn.Open();
+
+            string query = $"SELECT * FROM (SELECT *, RANK() OVER (ORDER BY win DESC) win_rank, RANK() OVER (ORDER BY playtime_second DESC) playtime_second_rank FROM user) as user_with_rank WHERE name LIKE '%{username}%'";
+            MySqlDataAdapter adpt = new MySqlDataAdapter(query, conn);
+
+            DataSet ds = new DataSet();
+            adpt.Fill(ds, "user_with_rank");
+
+            try
+            {
+                return ds.Tables[0].Rows;
+            }
+            catch
+            {
+                throw;
+            }
+        }
+
+        public static DataRowCollection Leaderboard(string order_column)
         {
             using var conn = new MySqlConnection(connStr);
             conn.Open();
@@ -47,7 +68,7 @@ namespace OthelloBot.src.db
 
             try
             {
-                return ds.Tables[0];
+                return ds.Tables[0].Rows;
             }
             catch
             {
@@ -55,21 +76,21 @@ namespace OthelloBot.src.db
             }
         }
 
-        public static void UpdateUser(ulong user_id, int win, int draw, int lose, int playtime_second)
+        public static void UpdateUser(ulong userId, string username, int win, int draw, int lose, int playtimeSecond)
         {
-            var pre_win = 0;
-            var pre_draw = 0;
-            var pre_lose = 0;
-            var pre_playtime_second = 0;
+            var preWin = 0;
+            var preDraw = 0;
+            var preLose = 0;
+            var prePlaytimeSecond = 0;
 
             try
             {
-                var userRow = GetUser(user_id);
+                var userRow = GetUser(userId);
 
-                pre_win = Convert.ToInt32(userRow["win"]);
-                pre_draw = Convert.ToInt32(userRow["draw"]);
-                pre_lose = Convert.ToInt32(userRow["lose"]);
-                pre_playtime_second = Convert.ToInt32(userRow["playtime_second"]);
+                preWin = Convert.ToInt32(userRow["win"]);
+                preDraw = Convert.ToInt32(userRow["draw"]);
+                preLose = Convert.ToInt32(userRow["lose"]);
+                prePlaytimeSecond = Convert.ToInt32(userRow["playtime_second"]);
             }
             catch
             {
@@ -79,7 +100,7 @@ namespace OthelloBot.src.db
             using var conn = new MySqlConnection(connStr);
             conn.Open();
 
-            string query = $"REPLACE INTO user (id, win, draw, lose, playtime_second) VALUES({user_id}, {pre_win + win}, {pre_draw + draw}, {pre_lose + lose}, {pre_playtime_second + playtime_second})";
+            string query = $"REPLACE INTO user (id, name, win, draw, lose, playtime_second) VALUES({userId}, '{username}', {preWin + win}, {preDraw + draw}, {preLose + lose}, {prePlaytimeSecond + playtimeSecond})";
             using var cmd = new MySqlCommand(query, conn);
 
             cmd.ExecuteNonQuery();
