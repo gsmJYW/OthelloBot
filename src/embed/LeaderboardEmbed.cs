@@ -3,6 +3,7 @@ using Discord.WebSocket;
 using OthelloBot.src.db;
 using System;
 using System.Data;
+using System.Linq;
 
 namespace OthelloBot.src.embed
 {
@@ -16,24 +17,24 @@ namespace OthelloBot.src.embed
             AddField("\u200B", "\u200B", true);
             AddField("플레이 시간", "\u200B", true);
 
-            DataTable winOrderTable = DB.Leaderboard("win");
-            DataTable playtimeOrderTable = DB.Leaderboard("playtime_second");
+            var winOrderRows = DB.Leaderboard("win");
+            var playtimeOrderRows = DB.Leaderboard("playtime_second");
 
-            for (int i = 0; i < winOrderTable.Rows.Count; i++)
+            for (int i = 0; i < winOrderRows.Count; i++)
             {
-                var winOrderUser = Program._client.GetUser(Convert.ToUInt64(winOrderTable.Rows[i]["id"]));
-                var playtimeOrderUser = Program._client.GetUser(Convert.ToUInt64(playtimeOrderTable.Rows[i]["id"]));
+                var winOrderRow = winOrderRows[i];
+                var playtimeOrderRow = playtimeOrderRows[i];
 
-                var win = Convert.ToInt32(winOrderTable.Rows[i]["win"]);
-                var draw = Convert.ToInt32(winOrderTable.Rows[i]["draw"]);
-                var lose = Convert.ToInt32(winOrderTable.Rows[i]["lose"]);
+                var win = Convert.ToInt32(winOrderRow["win"]);
+                var draw = Convert.ToInt32(winOrderRow["draw"]);
+                var lose = Convert.ToInt32(winOrderRow["lose"]);
                 var winRate = (win * 100) / (win + draw + lose);
 
-                var playtimeSecond = Convert.ToInt32(playtimeOrderTable.Rows[i]["playtime_second"]);
+                var playtimeSecond = Convert.ToInt32(playtimeOrderRows[i]["playtime_second"]);
 
-                AddField($"#{i + 1:00} {winOrderUser.Username}", $"{win}승 ({winRate}%)", true);
+                AddField($"{winOrderRow["name"]}", $"{win}승 ({winRate}%)", true);
                 AddField("\u200B", "\u200B", true);
-                AddField($"#{i + 1:00} {playtimeOrderUser.Username}", $"{playtimeSecond / 60}분", true);
+                AddField($"{playtimeOrderRow["name"]}", $"{playtimeSecond / 60}분", true);
             }
         }
     }
