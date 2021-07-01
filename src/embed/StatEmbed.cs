@@ -1,27 +1,20 @@
 ﻿using Discord;
-using Discord.WebSocket;
 using OthelloBot.src.db;
 using System;
+using System.Data;
 
 namespace OthelloBot.src.embed
 {
     class StatEmbed : EmbedBuilder
     {
-        public StatEmbed(SocketUser user)
+        public StatEmbed(DataRow user)
         {
-            var avatarUrl = $"https://cdn.discordapp.com/embed/avatars/{user.DiscriminatorValue % 5}.png";
-
-            if (user.GetAvatarUrl() != null)
-            {
-                avatarUrl = user.GetAvatarUrl();
-            }
-
-            WithAuthor(user.Username, iconUrl: avatarUrl);
+            WithTitle($"{user["name"]}");
             WithColor(new Color(0xFFFFFF));
 
             try
             {
-                var userRow = DB.GetUser(user.Id);
+                var userRow = DB.GetUser(Convert.ToUInt64(user["id"]));
 
                 var win = Convert.ToInt32(userRow["win"]);
                 var draw = Convert.ToInt32(userRow["draw"]);
