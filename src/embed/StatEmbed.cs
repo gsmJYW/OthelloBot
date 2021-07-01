@@ -19,36 +19,32 @@ namespace OthelloBot.src.embed
             WithAuthor(user.Username, iconUrl: avatarUrl);
             WithColor(new Color(0xFFFFFF));
 
-            int win, draw, lose, playtimeSecond;
-            double winRate;
-            string winRank, playtimeSecondRank;
-
             try
             {
                 var userRow = DB.GetUser(user.Id);
 
-                win = Convert.ToInt32(userRow["win"]);
-                draw = Convert.ToInt32(userRow["draw"]);
-                lose = Convert.ToInt32(userRow["lose"]);
-                playtimeSecond = Convert.ToInt32(userRow["playtime_second"]);
+                var win = Convert.ToInt32(userRow["win"]);
+                var draw = Convert.ToInt32(userRow["draw"]);
+                var lose = Convert.ToInt32(userRow["lose"]);
+                var playtimeSecond = Convert.ToInt32(userRow["playtime_second"]);
 
-                winRate = (double)win / (win + draw + lose);
+                var winRate = (win * 100) / (win + draw + lose);
 
-                winRank = $"{userRow["win_rank"]}";
-                playtimeSecondRank = $"{userRow["playtime_second_rank"]}";
+                var winRank = $"{userRow["win_rank"]}";
+                var playtimeSecondRank = $"{userRow["playtime_second_rank"]}";
+
+                AddField("승", $"{win} (#{winRank})", true);
+                AddField("무", draw, true);
+                AddField("패", lose, true);
+
+                AddField("승률", $"{winRate}%", true);
+                AddField("플레이 시간", $"{playtimeSecond / 60}분 (#{playtimeSecondRank})", true);
             }
             catch
             {
                 WithDescription("플레이 기록이 없습니다.");
                 return;
             }
-
-            AddField("승", $"{win} (#{winRank})", true);
-            AddField("무", draw, true);
-            AddField("패", lose, true);
-
-            AddField("승률", $"{winRate * 100: 0}%", true);
-            AddField("플레이 시간", $"{playtimeSecond / 60}분 (#{playtimeSecondRank})", true);
         }
     }
 }
