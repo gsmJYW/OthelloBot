@@ -27,14 +27,7 @@ namespace OthelloBot.src.embed
                             break;
 
                         default:
-                            if (game.IsAvailable(game.turn, y, x))
-                            {
-                                boardString += ":white_check_mark:";
-                            }
-                            else
-                            {
-                                boardString += ":black_large_square:";
-                            }
+                            boardString += ":black_large_square:";
                             break;
                     }
                 }
