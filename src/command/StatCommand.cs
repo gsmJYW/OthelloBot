@@ -23,7 +23,7 @@ namespace OthelloBot.src.command
 
             if (users.Count == 0)
             {
-                await Context.Channel.SendMessageAsync("사용자를 찾지 못했습니다.");
+                await Context.Channel.SendMessageAsync("플레이 기록을 찾지 못했습니다.");
             }
             else if (users.Count == 1)
             {
